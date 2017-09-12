@@ -1,5 +1,8 @@
 import java.io.*;
 import java.util.Scanner;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.HashMap;
@@ -165,8 +168,122 @@ class Graph {
         }
     }
 }
-public class Main {
-    public static void main(String[] args) {
+public class Main extends JFrame{
+	JButton readFileButton,buildButton,randomShiftButton,SPButton,bridgeWordButton;
+	JTextField sourceText,destText,textFilePathText;
+	Font font=new Font("黑体",Font.PLAIN,12);
+	public Main() {
+		setLayout(null);
+		setSize(720,600);
+		JLabel ImageLabel=new JLabel();
+		
+		readFileButton=new JButton("Read file");
+		buildButton=new JButton("Build graph");
+		randomShiftButton=new JButton("Random shift");
+		SPButton=new JButton("Shortest path");
+		bridgeWordButton=new JButton("Bridge word");
+		sourceText=new JTextField();
+		sourceText.setFont(font);
+		destText=new JTextField();
+		destText.setFont(font);
+		textFilePathText=new JTextField();
+		textFilePathText.setFont(font);
+		textFilePathText.setBounds(5, 5, 240, 30);
+		sourceText=new JTextField();
+		sourceText.setFont(font);
+		sourceText.setBounds(5, 125, 240, 30);
+		destText=new JTextField();
+		destText.setFont(font);
+		destText.setBounds(5, 165, 240, 30);
+		
+		textFilePathText.setText("input the text file path");
+		sourceText.setText("input the source word");
+		destText.setText("input the destination word");
+		
+		
+		ImageLabel.setSize(400, 550);
+		ImageLabel.setLocation(300, 10);
+		ImageIcon image = new ImageIcon("/Users/DongSky/result.png");
+		double width=(double)image.getIconWidth();
+		double height=(double)image.getIconHeight();
+		System.out.println(width+" "+height);
+		double x1=width/400;
+		double x2=height/550;
+		double x=max(x1,x2);
+		image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT)); 
+		ImageLabel.setIcon(image);
+		readFileButton.setSize(240, 30);
+		readFileButton.setLocation(5, 45);
+		buildButton.setSize(240,30);
+		buildButton.setLocation(5, 85);
+		SPButton.setSize(240,30);
+		SPButton.setLocation(5, 205);
+		bridgeWordButton.setSize(240,30);
+		bridgeWordButton.setLocation(5, 245);
+		randomShiftButton.setSize(240,30);
+		randomShiftButton.setLocation(5, 285);
+		readFileButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String path=textFilePathText.getText();
+			}
+		});
+		buildButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//add build procedure
+				//next is the template of showing the pic
+				
+				ImageIcon image = new ImageIcon("/Users/DongSky/result.png");
+				double width=(double)image.getIconWidth();
+				double height=(double)image.getIconHeight();
+				System.out.println(width+" "+height);
+				double x1=width/400;
+				double x2=height/550;
+				double x=max(x1,x2);
+				image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT)); 
+				ImageLabel.setIcon(image);
+			}
+		});
+		SPButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String sourceWord=sourceText.getText();
+				String destWord=destText.getText();
+			}
+		});
+		bridgeWordButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String sourceWord=sourceText.getText();
+				String destWord=destText.getText();
+			}
+		});
+		randomShiftButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			}
+		});
+		
+		add(ImageLabel);
+		add(textFilePathText);
+		add(sourceText);
+		add(destText);
+		add(readFileButton);
+		add(buildButton);
+		add(SPButton);
+		add(bridgeWordButton);
+		add(randomShiftButton);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+    double max(double x1, double x2) {
+		// TODO Auto-generated method stub
+    		if(x1>x2)return x1;
+		return x2;
+	}
+	public static void main(String[] args) {
+    		new Main();
         Graph g=new Graph();
         g.fileRead("/Users/DongSky/test.txt");
         g.addPath();
