@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.HashMap;
 
 class Graph {
+	public static boolean RandomFlag=false;
     public class Edge {
         int weightIndex;
         int from, to;
@@ -169,9 +170,12 @@ class Graph {
     }
 }
 public class Main extends JFrame{
-	JButton readFileButton,buildButton,randomShiftButton,SPButton,bridgeWordButton;
+	
+	JButton readFileButton,buildButton,randomShiftButton,SPButton,bridgeWordButton,updateGraphButton,resetButton;
 	JTextField sourceText,destText,textFilePathText;
 	Font font=new Font("黑体",Font.PLAIN,12);
+	public static Graph g=new Graph();
+	public static GraphViz gv;
 	public Main() {
 		setLayout(null);
 		setSize(720,600);
@@ -182,6 +186,8 @@ public class Main extends JFrame{
 		randomShiftButton=new JButton("Random shift");
 		SPButton=new JButton("Shortest path");
 		bridgeWordButton=new JButton("Bridge word");
+		updateGraphButton=new JButton("Update graph");
+		resetButton=new JButton("Reset graph");
 		sourceText=new JTextField();
 		sourceText.setFont(font);
 		destText=new JTextField();
@@ -203,15 +209,15 @@ public class Main extends JFrame{
 		
 		ImageLabel.setSize(400, 550);
 		ImageLabel.setLocation(300, 10);
-		ImageIcon image = new ImageIcon("/Users/DongSky/result.png");
-		double width=(double)image.getIconWidth();
-		double height=(double)image.getIconHeight();
-		System.out.println(width+" "+height);
-		double x1=width/400;
-		double x2=height/550;
-		double x=max(x1,x2);
-		image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT)); 
-		ImageLabel.setIcon(image);
+//		ImageIcon image = new ImageIcon("/Users/DongSky/result.png");
+//		double width=(double)image.getIconWidth();
+//		double height=(double)image.getIconHeight();
+//		System.out.println(width+" "+height);
+//		double x1=width/400;
+//		double x2=height/550;
+//		double x=max(x1,x2);
+//		image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT)); 
+//		ImageLabel.setIcon(image);
 		readFileButton.setSize(240, 30);
 		readFileButton.setLocation(5, 45);
 		buildButton.setSize(240,30);
@@ -222,10 +228,14 @@ public class Main extends JFrame{
 		bridgeWordButton.setLocation(5, 245);
 		randomShiftButton.setSize(240,30);
 		randomShiftButton.setLocation(5, 285);
+		resetButton.setSize(240,30);
+		resetButton.setLocation(5,325);
 		readFileButton.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String path=textFilePathText.getText();
+				g.fileRead(path);
+		        g.addPath();
 			}
 		});
 		buildButton.addActionListener(new ActionListener(){
@@ -233,8 +243,23 @@ public class Main extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				//add build procedure
 				//next is the template of showing the pic
+				gv=new GraphViz();
+		        gv.addln(gv.start_graph());
+		        for(int i=0;i<g.vertexList.size();i++) {
+		        		String s=g.vertexList.get(i).content;
+		        		for(int j=0;j<g.vertexList.get(i).getEdges();j++) {
+		        			int t_num=g.vertexList.get(i).edges.get(j).to;
+		        			String t=g.vertexList.get(t_num).content;
+		        			gv.addln(s+" -> "+t+";");
+		        		}
+		        }
+		        gv.addln(gv.end_graph());
+		        System.out.println(gv.getDotSource());
+		        String type = "png";
+		        File out=new File("result."+type);
+		        gv.writeGraphToFile(gv.getGraph(gv.getDotSource(),type), out);
 				
-				ImageIcon image = new ImageIcon("/Users/DongSky/result.png");
+				ImageIcon image = new ImageIcon("result.png");
 				double width=(double)image.getIconWidth();
 				double height=(double)image.getIconHeight();
 				System.out.println(width+" "+height);
@@ -264,6 +289,36 @@ public class Main extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 			}
 		});
+		resetButton.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gv=new GraphViz();
+		        gv.addln(gv.start_graph());
+		        for(int i=0;i<g.vertexList.size();i++) {
+		        		String s=g.vertexList.get(i).content;
+		        		for(int j=0;j<g.vertexList.get(i).getEdges();j++) {
+		        			int t_num=g.vertexList.get(i).edges.get(j).to;
+		        			String t=g.vertexList.get(t_num).content;
+		        			gv.addln(s+" -> "+t+";");
+		        		}
+		        }
+		        gv.addln(gv.end_graph());
+		        System.out.println(gv.getDotSource());
+		        String type = "png";
+		        File out=new File("result."+type);
+		        gv.writeGraphToFile(gv.getGraph(gv.getDotSource(),type), out);
+				
+				ImageIcon image = new ImageIcon("result.png");
+				double width=(double)image.getIconWidth();
+				double height=(double)image.getIconHeight();
+				System.out.println(width+" "+height);
+				double x1=width/400;
+				double x2=height/550;
+				double x=max(x1,x2);
+				image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT)); 
+				ImageLabel.setIcon(image);
+			}
+		});
 		
 		add(ImageLabel);
 		add(textFilePathText);
@@ -284,23 +339,6 @@ public class Main extends JFrame{
 	}
 	public static void main(String[] args) {
     		new Main();
-        Graph g=new Graph();
-        g.fileRead("/Users/DongSky/test.txt");
-        g.addPath();
-        GraphViz gv=new GraphViz();
-        gv.addln(gv.start_graph());
-        for(int i=0;i<g.vertexList.size();i++) {
-        		String s=g.vertexList.get(i).content;
-        		for(int j=0;j<g.vertexList.get(i).getEdges();j++) {
-        			int t_num=g.vertexList.get(i).edges.get(j).to;
-        			String t=g.vertexList.get(t_num).content;
-        			gv.addln(s+" -> "+t+";");
-        		}
-        }
-        gv.addln(gv.end_graph());
-        System.out.println(gv.getDotSource());
-        String type = "png";
-        File out=new File("/Users/DongSky/result."+type);
-        gv.writeGraphToFile(gv.getGraph(gv.getDotSource(),type), out);
+        
     }
 }
