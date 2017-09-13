@@ -131,7 +131,7 @@ class Graph {
                             piece += line.charAt(i);
                         }
                         else {
-                            Sequence.add(piece);
+                            if(piece!="")Sequence.add(piece);
                             piece = "";
                         }
                     }
@@ -248,8 +248,9 @@ class Graph {
         Vertex targetVertex = contentMap.get(targetString);
         int targetVertexIndex = targetVertex.index;
         System.out.println(targetVertexIndex);
+        if(sourceVertex==null||targetVertex==null)return 0x7fffffff;
         for (int i = 0; i < vertexList.size(); i++) 
-        		System.out.println("The i th is " + i + " : " + distance[i]);
+        		System.out.println("The i th "+vertexList.get(i).content+" is " + i + " : " + distance[i]);
         return distance[targetVertexIndex];
     }
 
@@ -409,6 +410,36 @@ class Graph {
         }
         return newText;
     }
+    public ArrayList< ArrayList<String> > getFullyPaths(Vertex currentVertex, Vertex targetVertex) {
+        ArrayList< ArrayList<String> > result = new ArrayList< ArrayList<String> >();
+
+        if (currentVertex == targetVertex) {
+            ArrayList<String> ret = new ArrayList<String>();
+            ret.add(targetVertex.content);
+            result.add(ret);
+            return result;
+        } else {
+            int currentIndex = currentVertex.getIndex();
+            for (int i = 0; i < intestEdge[currentIndex].size(); i++) {
+                Edge nextEdge = intestEdge[currentIndex].get(i);
+                int nextIndex = nextEdge.getFrom();
+                Vertex nextVertex = vertexList.get(nextIndex);
+
+                if (distance[nextIndex] + nextEdge.getWeight() == distance[currentIndex]) {
+                    ArrayList< ArrayList<String> > nextResult = getFullyPaths(nextVertex, targetVertex);
+
+                    for (int j = 0; j < nextResult.size(); j++) {
+                        ArrayList<String> currentPath = nextResult.get(j);
+                        currentPath.add(currentVertex.content);
+
+                        result.add(currentPath);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 }
 
 
@@ -493,6 +524,49 @@ public class Main extends JFrame{
 
     String calcShortestPath(Graph G, String word1, String word2) {
         int result=G.shortestPath(word1, word2);
+        System.out.println(word1+"->"+word2+":"+result);
+        ArrayList< ArrayList<String> > paths=new ArrayList();
+        if(result!=0x7fffffff)paths=g.getFullyPaths(g.contentMap.get(word2),g.contentMap.get(word1));
+        gv=new GraphViz();
+        HashMap temp=new HashMap();
+        gv.addln(gv.start_graph());
+        for(int i=0;i<g.vertexList.size();i++) {
+            String s=g.vertexList.get(i).content;
+            for(int j=0;j<g.vertexList.get(i).getEdges();j++) {
+                int t_num=g.vertexList.get(i).edges.get(j).to;
+                String t=g.vertexList.get(t_num).content;
+                gv.addln(s+" -> "+t+" [ "+"label=\""+g.vertexList.get(i).edges.get(j).getWeight()+"\" ]"+";");
+            }
+        }
+        for(int i=0;i<paths.size();i++) {
+        		ArrayList<String> currentPath=paths.get(i);
+        		Random rand=new Random();
+        		float r=rand.nextFloat();
+        		float g=rand.nextFloat();
+        		float b=rand.nextFloat();
+        		Color randomColor=new Color(r,g,b);
+        		String strColor="#"+Integer.toHexString(randomColor.getRed())+Integer.toHexString(randomColor.getGreen())+Integer.toHexString(randomColor.getBlue());
+        		System.out.println(strColor);
+        		for(int j=0;j<currentPath.size()-1;j++) {
+        			String s=currentPath.get(j);
+        			String t=currentPath.get(j+1);
+        			gv.addln(s+" -> "+t+" [ "+" color="+"\""+strColor+"\""+" ]"+";");
+        		}
+        	}
+        gv.addln(gv.end_graph());
+        //System.out.println(gv.getDotSource());
+        String type = "png";
+        File out=new File("result."+type);
+        gv.writeGraphToFile(gv.getGraph(gv.getDotSource(),type), out);
+        ImageIcon image = new ImageIcon("result.png");
+        double width=(double)image.getIconWidth();
+        double height=(double)image.getIconHeight();
+        System.out.println(width+" "+height);
+        double x1=width/400;
+        double x2=height/550;
+        double x=max(x1,x2);
+        image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT));
+        ImageLabel.setIcon(image);
         //System.out.println(word1+"->"+word2+"="+result);
         return ""+result;
     }
@@ -610,6 +684,7 @@ public class Main extends JFrame{
                 try {
                 		result=calcShortestPath(g, sourceWord,destWord);
                 }catch(Exception e1) {
+                		e1.printStackTrace();
                 		result="not found";
                 }
                 System.out.println(sourceWord+"->"+destWord+":"+result);
