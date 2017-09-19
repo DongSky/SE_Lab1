@@ -4,443 +4,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
-class Graph {
-    class Edge {
-        int weightIndex;
-        boolean walked;
-        int from, to;
 
-        public Edge(int initWeight, int initFrom, int initTo) {
-            weightIndex = edgeNum;
-            edgeNum += 1;
-            weight[weightIndex] = initWeight;
-            from = initFrom;
-            to = initTo;
-        }
-        public void addWeight() {
-            weight[weightIndex] += 1;
-        }
-        public int getWeight() {
-            return weight[weightIndex];
-        }
-        public int getGlobalIndex() {
-            return weightIndex;
-        }
-        public int getFrom() {
-            return from;
-        }
-        public int getTo() {
-            return to;
-        }
-    }
-
-    class Vertex {
-        int index;
-        String content;
-        ArrayList<Edge> edges=null;
-
-        public Vertex(String initContent) {
-            content = new String();
-            content = initContent;
-            edges = new ArrayList<Edge>();
-            index = 0;
-        }
-        public int getEdges(){
-            if(edges!=null)return edges.size();
-            else return 0;
-        }
-        public void addEdge(int nextIndex) {
-            Edge current = getEdge(nextIndex);
-            if (current == null) {
-                current = new Edge(1, index, nextIndex);
-                edges.add(current);
-            } else {
-                current.addWeight();
-            }
-        }
-
-        public void setIndex(int index) {
-            this.index = index;
-        }
-
-        public void setContent(String newContent) {
-            content = new String();
-            content = newContent;
-        }
-        public String getContent() {
-            return content;
-        }
-        public int getIndex() {
-            return index;
-        }
-        public Edge getEdge(int nextIndex) {
-            for (int i = 0; i < edges.size(); i++) {
-                Edge currentEdge = edges.get(i);
-                if (currentEdge.getTo() == nextIndex) {
-                    return currentEdge;
-                }
-            }
-            return null;
-        }
-    }
-
-    ArrayList<Vertex> vertexList;
-    int [] weight;
-    int edgeNum;
-    int [] distance;
-    boolean [] visited;
-    boolean [] walked;
-    ArrayList<Edge> [] intestEdge;
-    HashMap<String, Vertex> contentMap;
-    public static ArrayList<String> Sequence;
-
-    public Graph() {
-        int maxWeightListSize = 2000000;
-        weight = new int[maxWeightListSize];
-        edgeNum = 0;
-        contentMap = new HashMap<String, Vertex>();
-        Sequence = new ArrayList<String>();
-        vertexList = new ArrayList<Vertex>();
-    }
-
-    Vertex addVertex(String word) {
-        int index = vertexList.size();
-        Vertex current = new Vertex(word);
-
-        current.setIndex(index);
-        vertexList.add(current);
-
-        contentMap.put(word, vertexList.get(vertexList.size() - 1));
-        return current;
-    }
-
-    public static void fileRead(String filename) {
-        Sequence=new ArrayList<String>();
-        File file=new File(filename);
-        try {
-            InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
-            BufferedReader br = new BufferedReader(reader);
-            String line = "";
-            try {
-                line = br.readLine();
-                while (line != null) {
-                    String piece = "";
-                    for (int i = 0; i < line.length(); i++) {
-                        if ((line.charAt(i) >= 'A' && line.charAt(i) <= 'Z') ||
-                                (line.charAt(i) >= 'a' && line.charAt(i) <= 'z')) {
-                            piece += line.charAt(i);
-                        }
-                        else {
-                            if(piece!="")Sequence.add(piece);
-                            piece = "";
-                        }
-                    }
-                    if (piece != "") {
-                        Sequence.add(piece);
-                    }
-                    line = br.readLine();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void addPath() {
-        String headContent = Sequence.get(0);
-        Vertex current = contentMap.get(headContent);
-
-        if (current == null) {
-            current = addVertex(headContent);
-        }
-
-        for (int i = 1; i < Sequence.size(); i++) {
-            String nextContent = Sequence.get(i);
-            Vertex nextVertex = contentMap.get(nextContent);
-
-            if (nextVertex == null) {
-                nextVertex = addVertex(nextContent);
-            }
-            int nextIndex = nextVertex.getIndex();
-            current.addEdge(nextIndex);
-            current = nextVertex;
-
-        }
-        for(int i=0;i<vertexList.size();i++){
-            Vertex v=vertexList.get(i);
-            System.out.println(v.content+" "+v.getEdges());
-        }
-    }
-
-    class ComparisonPairs {
-        int key, value;
-        public ComparisonPairs(int initKey, int initValue) {
-            key = initKey;
-            value = initValue;
-        }
-    }
-
-    public void getshortestPath(int sourceVertexIndex) {
-        Vertex sourceVertex = vertexList.get(sourceVertexIndex);
-
-        distance = new int[vertexList.size()];
-        intestEdge = new ArrayList [vertexList.size()];
-        cleanVisited();
-        for (int i = 0; i < vertexList.size(); i++) {
-            distance[i] = 0x7fffffff;
-        }
-
-        distance[sourceVertexIndex] = 0;
-
-        PriorityQueue<ComparisonPairs> heap = new PriorityQueue<ComparisonPairs>(
-                new Comparator<ComparisonPairs>() {
-                    public int compare(ComparisonPairs p1, ComparisonPairs p2) {
-                        return p1.key - p2.key;
-                    }
-                }
-        );
-
-        ComparisonPairs headPair = new ComparisonPairs(distance[sourceVertexIndex], sourceVertexIndex);
-        heap.add(headPair);
-
-        while (!heap.isEmpty()) {
-            while (!heap.isEmpty() && visited[heap.peek().value]) {
-                heap.poll();
-            }
-            if (heap.isEmpty()) break;
-
-            int current = heap.poll().value;
-            Vertex currentVertex = vertexList.get(current);
-            visited[current] = true;
-            for (int i = 0; i < currentVertex.edges.size(); i++) {
-                Edge currentEdge = currentVertex.edges.get(i);
-                int newDistance = distance[currentEdge.getFrom()] + currentEdge.getWeight();
-                int prevDistance = distance[currentEdge.getTo()];
-
-                if (newDistance < prevDistance) {
-                    distance[currentEdge.getTo()] = newDistance;
-                    ArrayList<Edge> newEdgeList = new ArrayList<Edge>();
-                    newEdgeList.add(currentEdge);
-                    intestEdge[currentEdge.getTo()] = newEdgeList;
-                    ComparisonPairs nextPair = new ComparisonPairs(distance[currentEdge.getTo()], currentEdge.getTo());
-                    heap.add(nextPair);
-                } else if (newDistance == prevDistance) {
-                    intestEdge[currentEdge.getTo()].add(currentEdge);
-                }
-            }
-        }
-    }
-
-    public void cleanVisited() {
-        visited = new boolean[vertexList.size()];
-        for (int i = 0; i < vertexList.size(); i++) {
-            visited[i] = false;
-        }
-    }
-
-    int shortestPath(String sourceString, String targetString) {
-        Vertex sourceVertex = contentMap.get(sourceString);
-        int sourceVertexIndex = sourceVertex.getIndex();
-        getshortestPath(sourceVertexIndex);
-
-        Vertex targetVertex = contentMap.get(targetString);
-        int targetVertexIndex = targetVertex.index;
-        System.out.println(targetVertexIndex);
-        if(sourceVertex==null||targetVertex==null)return 0x7fffffff;
-        for (int i = 0; i < vertexList.size(); i++) 
-        		System.out.println("The i th "+vertexList.get(i).content+" is " + i + " : " + distance[i]);
-        return distance[targetVertexIndex];
-    }
-
-    public boolean breakWalkingFlag=false;
-
-    public void breakWalking() {
-        this.breakWalkingFlag = true;
-    }
-
-    private boolean hasUnwalkedEdge(Vertex current) {
-        if (current.edges.size() == 0) {
-            return false;
-        } else {
-            boolean hasNextUnwalkedEdge = false;
-            for (int i = 0; i < current.edges.size(); i++) {
-                if (!walked[current.edges.get(i).getGlobalIndex()]) {
-                    hasNextUnwalkedEdge = true;
-                    break;
-                }
-            }
-            if (hasNextUnwalkedEdge) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-
-    public String randomWalking(int delayTime) {
-        Random random = new Random();
-        int currentIndex = random.nextInt(vertexList.size() - 1);
-        String text = "";
-        Vertex current = vertexList.get(currentIndex);
-        cleanWalkedEdge();
-        text += current.getContent();
-
-        while (!breakWalkingFlag && hasUnwalkedEdge(current)) {
-            try {
-                Thread.currentThread().sleep(delayTime);
-            } catch (Exception TimeDelayError) {}
-
-            int nextEdgeIndex;
-            nextEdgeIndex = random.nextInt(current.edges.size());
-
-            Edge currentEdge = current.edges.get(nextEdgeIndex);
-            if (walked[currentEdge.getGlobalIndex()]) {
-                break;
-            }
-            walked[currentEdge.getGlobalIndex()] = true;
-
-            currentIndex = currentEdge.getTo();
-            current = vertexList.get(currentIndex);
-            text += " -> " + current.getContent();
-        }
-        breakWalkingFlag=false;
-        if(breakWalkingFlag==false)System.out.println("reset complete");
-        return text;
-    }
-
-    public void cleanWalkedEdge() {
-        walked = new boolean[edgeNum];
-        for (int i = 0; i < edgeNum; i++) {
-            walked[i] = false;
-        }
-    }
-
-    public ArrayList<Vertex> getBridgeWords(Vertex vertex1, Vertex vertex2) {
-        ArrayList<Vertex> bridgeVertex = new ArrayList<>();
-        cleanVisited();
-        for (int i = 0; i < vertex1.edges.size(); i++) {
-            Edge edge1 = vertex1.edges.get(i);
-            Vertex nextVertex=vertexList.get(edge1.to);
-            for (int j = 0; j < nextVertex.edges.size(); j++) {
-                Edge edge2 = nextVertex.edges.get(j);
-                if (edge2.getTo() == vertex2.index) {
-                    if (!visited[edge1.getTo()]) {
-                        bridgeVertex.add(vertexList.get(edge1.getTo()));
-                        visited[edge1.getTo()] = true;
-                    }
-                }
-            }
-        }
-        return bridgeVertex;
-    }
-
-    public String getBridgeWords(String str1, String str2) {
-        String answer = new String();
-        Vertex vertex1 = contentMap.get(str1), vertex2 = contentMap.get(str2);
-        System.out.println(vertex1.content+"+"+vertex2.content);
-        if (vertex1 == null || vertex2 == null) {
-            answer = "No word1 or word2 in the graph!";
-        } else {
-            ArrayList<Vertex> bridgeVertex = getBridgeWords(vertex1, vertex2);
-            if (bridgeVertex.size() == 0) {
-                answer = "No bridge words from word1 and word2";
-            } else {
-                answer = "The bridge words from word1 to word2 are: ";
-                if (bridgeVertex.size() == 1) {
-                    answer = answer + bridgeVertex.get(0).getContent() + ".";
-                } else {
-                    for (int i = 0; i < bridgeVertex.size() - 1; i++) {
-                        answer = answer + bridgeVertex.get(i).getContent() + ", ";
-                    }
-                    answer = answer + "and " + bridgeVertex.get(bridgeVertex.size() - 1) + ".";
-                }
-            }
-        }
-        return answer;
-    }
-
-    boolean isLetter(char x) {
-        return ('a' <= x && x <= 'z') || ('A' <= x && x <= 'Z');
-    }
-
-    public String generateNewText(String originalText) {
-        int idx = 0;
-        String newText = "";
-        String current = "";
-        String temp = new String();
-        while (idx < originalText.length()&&!isLetter(originalText.charAt(idx))) {
-            newText += originalText.charAt(idx);
-            idx += 1;
-        }
-        while (idx < originalText.length()&&isLetter(originalText.charAt(idx))) {
-            newText += originalText.charAt(idx);
-            current += originalText.charAt(idx);
-            idx += 1;
-        }
-
-        while (idx < originalText.length()&&idx < originalText.length()) {
-            temp = new String("");
-            String nextWord = new String("");
-
-            while (idx < originalText.length()&&!isLetter(originalText.charAt(idx))) {
-                temp += originalText.charAt(idx);
-                idx += 1;
-            }
-
-            while (idx < originalText.length()&&isLetter(originalText.charAt(idx))) {
-                nextWord += originalText.charAt(idx);
-                idx += 1;
-            }
-
-            Vertex vertex1 = contentMap.get(current);
-            Vertex vertex2 = contentMap.get(nextWord);
-
-            if (vertex1 != null && vertex2 != null) {
-                ArrayList<Vertex> bridgeWords = getBridgeWords(vertex1, vertex2);
-                if (bridgeWords.size() != 0) {
-                    Random random = new Random();
-                    Vertex bridge = bridgeWords.get(random.nextInt(bridgeWords.size()));
-                    newText += " " + bridge.getContent();
-                }
-            }
-            newText += temp + nextWord;
-            current = nextWord;
-        }
-        return newText;
-    }
-    public ArrayList< ArrayList<String> > getFullyPaths(Vertex currentVertex, Vertex targetVertex) {
-        ArrayList< ArrayList<String> > result = new ArrayList< ArrayList<String> >();
-
-        if (currentVertex == targetVertex) {
-            ArrayList<String> ret = new ArrayList<String>();
-            ret.add(targetVertex.content);
-            result.add(ret);
-            return result;
-        } else {
-            int currentIndex = currentVertex.getIndex();
-            for (int i = 0; i < intestEdge[currentIndex].size(); i++) {
-                Edge nextEdge = intestEdge[currentIndex].get(i);
-                int nextIndex = nextEdge.getFrom();
-                Vertex nextVertex = vertexList.get(nextIndex);
-
-                if (distance[nextIndex] + nextEdge.getWeight() == distance[currentIndex]) {
-                    ArrayList< ArrayList<String> > nextResult = getFullyPaths(nextVertex, targetVertex);
-
-                    for (int j = 0; j < nextResult.size(); j++) {
-                        ArrayList<String> currentPath = nextResult.get(j);
-                        currentPath.add(currentVertex.content);
-
-                        result.add(currentPath);
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-}
 
 
 public class Main extends JFrame{
@@ -450,10 +14,459 @@ public class Main extends JFrame{
     JLabel ImageLabel=new JLabel();
     public static int randomWalkDelayTime = 500; // Unit: ms
     Font font=new Font("黑体",Font.PLAIN,12);
-    public static Graph g=new Graph();
-    public static GraphViz gv;
+    
     public static boolean ranFlag=false;
 
+    public static class Graph {
+    	/*
+         * Edge Class:store edges in the graph
+         * paramaters:
+         *     int weightIndex: the number of the edge
+         *     boolean walked: a flag to judge in the Random Walk process
+         *     int from: the number of start word in the edge
+         *     int to: the number of destination in the edge
+         *     */
+        class Edge {
+            int weightIndex;
+            boolean walked;
+            int from, to;
+            
+            public Edge(int initWeight, int initFrom, int initTo) {
+                weightIndex = edgeNum;
+                edgeNum += 1;
+                weight[weightIndex] = initWeight;
+                from = initFrom;
+                to = initTo;
+            }
+            public void addWeight() {
+                weight[weightIndex] += 1;
+            }
+            public int getWeight() {
+                return weight[weightIndex];
+            }
+            public int getGlobalIndex() {
+                return weightIndex;
+            }
+            public int getFrom() {
+                return from;
+            }
+            public int getTo() {
+                return to;
+            }
+        }
+
+        class Vertex {
+            int index;
+            String content;
+            ArrayList<Edge> edges=null;
+
+            public Vertex(String initContent) {
+                content = new String();
+                content = initContent;
+                edges = new ArrayList<Edge>();
+                index = 0;
+            }
+            public int getEdges(){
+                if(edges!=null)return edges.size();
+                else return 0;
+            }
+            public void addEdge(int nextIndex) {
+                Edge current = getEdge(nextIndex);
+                if (current == null) {
+                    current = new Edge(1, index, nextIndex);
+                    edges.add(current);
+                } else {
+                    current.addWeight();
+                }
+            }
+
+            public void setIndex(int index) {
+                this.index = index;
+            }
+
+            public void setContent(String newContent) {
+                content = new String();
+                content = newContent;
+            }
+            public String getContent() {
+                return content;
+            }
+            public int getIndex() {
+                return index;
+            }
+            public Edge getEdge(int nextIndex) {
+                for (int i = 0; i < edges.size(); i++) {
+                    Edge currentEdge = edges.get(i);
+                    if (currentEdge.getTo() == nextIndex) {
+                        return currentEdge;
+                    }
+                }
+                return null;
+            }
+        }
+
+        ArrayList<Vertex> vertexList;
+        int [] weight;
+        int edgeNum;
+        int [] distance;
+        boolean [] visited;
+        boolean [] walked;
+        ArrayList<Edge> [] intestEdge;
+        HashMap<String, Vertex> contentMap;
+        public ArrayList<String> Sequence;
+
+        public Graph() {
+            int maxWeightListSize = 2000000;
+            weight = new int[maxWeightListSize];
+            edgeNum = 0;
+            contentMap = new HashMap<String, Vertex>();
+            Sequence = new ArrayList<String>();
+            vertexList = new ArrayList<Vertex>();
+        }
+
+        Vertex addVertex(String word) {
+            int index = vertexList.size();
+            Vertex current = new Vertex(word);
+
+            current.setIndex(index);
+            vertexList.add(current);
+
+            contentMap.put(word, vertexList.get(vertexList.size() - 1));
+            return current;
+        }
+
+        public void fileRead(String filename) {
+            Sequence=new ArrayList<String>();
+            File file=new File(filename);
+            try {
+                InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
+                BufferedReader br = new BufferedReader(reader);
+                String line = "";
+                try {
+                    line = br.readLine();
+                    while (line != null) {
+                        String piece = "";
+                        for (int i = 0; i < line.length(); i++) {
+                            if ((line.charAt(i) >= 'A' && line.charAt(i) <= 'Z') ||
+                                    (line.charAt(i) >= 'a' && line.charAt(i) <= 'z')) {
+                                piece += line.charAt(i);
+                            }
+                            else {
+                                if(piece!="")Sequence.add(piece);
+                                piece = "";
+                            }
+                        }
+                        if (piece != "") {
+                            Sequence.add(piece);
+                        }
+                        line = br.readLine();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void addPath() {
+            String headContent = Sequence.get(0);
+            Vertex current = contentMap.get(headContent);
+
+            if (current == null) {
+                current = addVertex(headContent);
+            }
+
+            for (int i = 1; i < Sequence.size(); i++) {
+                String nextContent = Sequence.get(i);
+                Vertex nextVertex = contentMap.get(nextContent);
+
+                if (nextVertex == null) {
+                    nextVertex = addVertex(nextContent);
+                }
+                int nextIndex = nextVertex.getIndex();
+                current.addEdge(nextIndex);
+                current = nextVertex;
+
+            }
+            for(int i=0;i<vertexList.size();i++){
+                Vertex v=vertexList.get(i);
+                System.out.println(v.content+" "+v.getEdges());
+            }
+        }
+
+        class ComparisonPairs {
+            int key, value;
+            public ComparisonPairs(int initKey, int initValue) {
+                key = initKey;
+                value = initValue;
+            }
+        }
+
+        public void getshortestPath(int sourceVertexIndex) {
+            Vertex sourceVertex = vertexList.get(sourceVertexIndex);
+
+            distance = new int[vertexList.size()];
+            intestEdge = new ArrayList [vertexList.size()];
+            cleanVisited();
+            for (int i = 0; i < vertexList.size(); i++) {
+                distance[i] = 0x7fffffff;
+            }
+
+            distance[sourceVertexIndex] = 0;
+
+            PriorityQueue<ComparisonPairs> heap = new PriorityQueue<ComparisonPairs>(
+                    new Comparator<ComparisonPairs>() {
+                        public int compare(ComparisonPairs p1, ComparisonPairs p2) {
+                            return p1.key - p2.key;
+                        }
+                    }
+            );
+
+            ComparisonPairs headPair = new ComparisonPairs(distance[sourceVertexIndex], sourceVertexIndex);
+            heap.add(headPair);
+
+            while (!heap.isEmpty()) {
+                while (!heap.isEmpty() && visited[heap.peek().value]) {
+                    heap.poll();
+                }
+                if (heap.isEmpty()) break;
+
+                int current = heap.poll().value;
+                Vertex currentVertex = vertexList.get(current);
+                visited[current] = true;
+                for (int i = 0; i < currentVertex.edges.size(); i++) {
+                    Edge currentEdge = currentVertex.edges.get(i);
+                    int newDistance = distance[currentEdge.getFrom()] + currentEdge.getWeight();
+                    int prevDistance = distance[currentEdge.getTo()];
+
+                    if (newDistance < prevDistance) {
+                        distance[currentEdge.getTo()] = newDistance;
+                        ArrayList<Edge> newEdgeList = new ArrayList<Edge>();
+                        newEdgeList.add(currentEdge);
+                        intestEdge[currentEdge.getTo()] = newEdgeList;
+                        ComparisonPairs nextPair = new ComparisonPairs(distance[currentEdge.getTo()], currentEdge.getTo());
+                        heap.add(nextPair);
+                    } else if (newDistance == prevDistance) {
+                        intestEdge[currentEdge.getTo()].add(currentEdge);
+                    }
+                }
+            }
+        }
+
+        public void cleanVisited() {
+            visited = new boolean[vertexList.size()];
+            for (int i = 0; i < vertexList.size(); i++) {
+                visited[i] = false;
+            }
+        }
+
+        int shortestPath(String sourceString, String targetString) {
+            Vertex sourceVertex = contentMap.get(sourceString);
+            Vertex targetVertex = contentMap.get(targetString);
+            if(sourceVertex==null)return -1;
+            int sourceVertexIndex = sourceVertex.getIndex();
+            getshortestPath(sourceVertexIndex);
+            if(targetVertex==null)return -2;
+            int targetVertexIndex = targetVertex.index;
+            System.out.println(targetVertexIndex);
+            if(sourceVertex==null||targetVertex==null)return 0x7fffffff;
+            for (int i = 0; i < vertexList.size(); i++) 
+            		System.out.println("The i th "+vertexList.get(i).content+" is " + i + " : " + distance[i]);
+            return distance[targetVertexIndex];
+        }
+
+        public boolean breakWalkingFlag=false;
+
+        public void breakWalking() {
+            this.breakWalkingFlag = true;
+        }
+
+        private boolean hasUnwalkedEdge(Vertex current) {
+            if (current.edges.size() == 0) {
+                return false;
+            } else {
+                boolean hasNextUnwalkedEdge = false;
+                for (int i = 0; i < current.edges.size(); i++) {
+                    if (!walked[current.edges.get(i).getGlobalIndex()]) {
+                        hasNextUnwalkedEdge = true;
+                        break;
+                    }
+                }
+                if (hasNextUnwalkedEdge) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        public String randomWalking(int delayTime) {
+            Random random = new Random();
+            int currentIndex = random.nextInt(vertexList.size() - 1);
+            String text = "";
+            Vertex current = vertexList.get(currentIndex);
+            cleanWalkedEdge();
+            text += current.getContent();
+
+            while (!breakWalkingFlag && hasUnwalkedEdge(current)&&ranFlag) {
+                try {
+                    Thread.currentThread().sleep(delayTime);
+                } catch (Exception TimeDelayError) {}
+
+                int nextEdgeIndex;
+                nextEdgeIndex = random.nextInt(current.edges.size());
+
+                Edge currentEdge = current.edges.get(nextEdgeIndex);
+                if (walked[currentEdge.getGlobalIndex()]) {
+                    break;
+                }
+                walked[currentEdge.getGlobalIndex()] = true;
+                currentIndex = currentEdge.getTo();
+                current = vertexList.get(currentIndex);
+                text += " -> " + current.getContent();
+            }
+            if(breakWalkingFlag==false)System.out.println("false");
+            breakWalkingFlag=false;
+            ranFlag=false;
+            if(breakWalkingFlag==false)System.out.println("reset complete");
+            return text;
+        }
+
+        public void cleanWalkedEdge() {
+            walked = new boolean[edgeNum];
+            for (int i = 0; i < edgeNum; i++) {
+                walked[i] = false;
+            }
+        }
+
+        public ArrayList<Vertex> getBridgeWords(Vertex vertex1, Vertex vertex2) {
+            ArrayList<Vertex> bridgeVertex = new ArrayList<>();
+            cleanVisited();
+            for (int i = 0; i < vertex1.edges.size(); i++) {
+                Edge edge1 = vertex1.edges.get(i);
+                Vertex nextVertex=vertexList.get(edge1.to);
+                for (int j = 0; j < nextVertex.edges.size(); j++) {
+                    Edge edge2 = nextVertex.edges.get(j);
+                    if (edge2.getTo() == vertex2.index) {
+                        if (!visited[edge1.getTo()]) {
+                            bridgeVertex.add(vertexList.get(edge1.getTo()));
+                            visited[edge1.getTo()] = true;
+                        }
+                    }
+                }
+            }
+            return bridgeVertex;
+        }
+
+        public String getBridgeWords(String str1, String str2) {
+            String answer = new String();
+            Vertex vertex1 = contentMap.get(str1), vertex2 = contentMap.get(str2);
+            //System.out.println(vertex1.content+"+"+vertex2.content);
+            if (vertex1 == null || vertex2 == null) {
+                answer = "No word1 or word2 in the graph!";
+            } else {
+                ArrayList<Vertex> bridgeVertex = getBridgeWords(vertex1, vertex2);
+                if (bridgeVertex.size() == 0) {
+                    answer = "No bridge words from word1 and word2";
+                } else {
+                    answer = "The bridge words from word1 to word2 are: ";
+                    if (bridgeVertex.size() == 1) {
+                        answer = answer + bridgeVertex.get(0).getContent() + ".";
+                    } else {
+                        for (int i = 0; i < bridgeVertex.size() - 1; i++) {
+                            answer = answer + bridgeVertex.get(i).getContent() + ", ";
+                        }
+                        answer = answer + "and " + bridgeVertex.get(bridgeVertex.size() - 1).getContent() + ".";
+                    }
+                }
+            }
+            return answer;
+        }
+
+        boolean isLetter(char x) {
+            return ('a' <= x && x <= 'z') || ('A' <= x && x <= 'Z');
+        }
+
+        public String generateNewText(String originalText) {
+            int idx = 0;
+            String newText = "";
+            String current = "";
+            String temp = new String();
+            while (idx < originalText.length()&&!isLetter(originalText.charAt(idx))) {
+                newText += originalText.charAt(idx);
+                idx += 1;
+            }
+            while (idx < originalText.length()&&isLetter(originalText.charAt(idx))) {
+                newText += originalText.charAt(idx);
+                current += originalText.charAt(idx);
+                idx += 1;
+            }
+
+            while (idx < originalText.length()&&idx < originalText.length()) {
+                temp = new String("");
+                String nextWord = new String("");
+
+                while (idx < originalText.length()&&!isLetter(originalText.charAt(idx))) {
+                    temp += originalText.charAt(idx);
+                    idx += 1;
+                }
+
+                while (idx < originalText.length()&&isLetter(originalText.charAt(idx))) {
+                    nextWord += originalText.charAt(idx);
+                    idx += 1;
+                }
+
+                Vertex vertex1 = contentMap.get(current);
+                Vertex vertex2 = contentMap.get(nextWord);
+
+                if (vertex1 != null && vertex2 != null) {
+                    ArrayList<Vertex> bridgeWords = getBridgeWords(vertex1, vertex2);
+                    if (bridgeWords.size() != 0) {
+                        Random random = new Random();
+                        Vertex bridge = bridgeWords.get(random.nextInt(bridgeWords.size()));
+                        newText += " " + bridge.getContent();
+                    }
+                }
+                newText += temp + nextWord;
+                current = nextWord;
+            }
+            return newText;
+        }
+        public ArrayList< ArrayList<String> > getFullyPaths(Vertex currentVertex, Vertex targetVertex) {
+            ArrayList< ArrayList<String> > result = new ArrayList< ArrayList<String> >();
+
+            if (currentVertex == targetVertex) {
+                ArrayList<String> ret = new ArrayList<String>();
+                ret.add(targetVertex.content);
+                result.add(ret);
+                return result;
+            } else {
+                int currentIndex = currentVertex.getIndex();
+                for (int i = 0; i < intestEdge[currentIndex].size(); i++) {
+                    Edge nextEdge = intestEdge[currentIndex].get(i);
+                    int nextIndex = nextEdge.getFrom();
+                    Vertex nextVertex = vertexList.get(nextIndex);
+
+                    if (distance[nextIndex] + nextEdge.getWeight() == distance[currentIndex]) {
+                        ArrayList< ArrayList<String> > nextResult = getFullyPaths(nextVertex, targetVertex);
+
+                        for (int j = 0; j < nextResult.size(); j++) {
+                            ArrayList<String> currentPath = nextResult.get(j);
+                            currentPath.add(currentVertex.content);
+
+                            result.add(currentPath);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+    }
+    
+    public static Graph g=new Graph();
+    public static GraphViz gv;
     /*–
     main(String[] args)
     ：主程序入口，接收用户输入文件，生成图，并允许用户选择后续各项功能；
@@ -461,7 +474,7 @@ public class Main extends JFrame{
     type createDirectedGraph(String filename)
     ：生成有向图
     –
-    void showDirectedGraph(type G)
+    void showDirectedGraph(Graph g)
     ：展示有向图
     –
 */
@@ -492,8 +505,8 @@ public class Main extends JFrame{
         double width=(double)image.getIconWidth();
         double height=(double)image.getIconHeight();
         System.out.println(width+" "+height);
-        double x1=width/400;
-        double x2=height/550;
+        double x1=width/480;
+        double x2=height/750;
         double x=max(x1,x2);
         image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT));
         ImageLabel.setIcon(image);
@@ -524,6 +537,14 @@ public class Main extends JFrame{
 
     String calcShortestPath(Graph G, String word1, String word2) {
         int result=G.shortestPath(word1, word2);
+        String eririStr=" ";
+        if(result==-1) {
+        		eririStr+="source word not found";
+        }
+        else if(result==-2) {
+        		eririStr+="dest word not found";
+        }
+        else {
         System.out.println(word1+"->"+word2+":"+result);
         ArrayList< ArrayList<String> > paths=new ArrayList();
         if(result!=0x7fffffff)paths=g.getFullyPaths(g.contentMap.get(word2),g.contentMap.get(word1));
@@ -562,19 +583,28 @@ public class Main extends JFrame{
         double width=(double)image.getIconWidth();
         double height=(double)image.getIconHeight();
         System.out.println(width+" "+height);
-        double x1=width/400;
-        double x2=height/550;
+        double x1=width/480;
+        double x2=height/750;
         double x=max(x1,x2);
         image.setImage(image.getImage().getScaledInstance((int)(width/x),(int)(height/x),Image.SCALE_DEFAULT));
         ImageLabel.setIcon(image);
+        }
         //System.out.println(word1+"->"+word2+"="+result);
-        return ""+result;
+        return ""+result+eririStr;
     }
     String randomWalk(Graph G) {
         String result= G.randomWalking(randomWalkDelayTime);
         resultText.setText(result);
         return result;
     }
+    /*
+     * RandomWalk Class: used to execute Random Walk process with multi threads
+     * paramaters:
+     *     Thread t: a new thread
+     *     String name: the name of this thread
+     *     start(): the function to create a new thread
+     *     run(): the function to run Random Wlak process, executed automatically
+     **/
     class RandomWalk implements Runnable {
     	   private Thread t;
     	   private String threadName;
@@ -597,14 +627,24 @@ public class Main extends JFrame{
     	   }
     	}
     
+    /*
+     * Main Class: Create GUI & set ActionListeners
+     * readFileButton: JButton of Reading the source file
+     * buildButton: JButton of create a graph of text
+     * SPButton: JButton of calculate the shortest path of two words, then generate a new graph automatically
+     * randomShiftButton: JButton of start or stop random walk process
+     * bridgeWordButton: JButton of find bridge word
+     * resetButton: re-generate a new graph with no colored edges
+     * geneNewTextButton: JButton of generate new text using bridge word
+     * sourceText: JTextField of input the source word or the source text(generate new text)
+     * dest text: JTextField of input the dest word
+     * textFilePathText: JTextField of input the path of the source file
+     * resultText: JTextField to display the result
+     * ImageLabel: display the image generated by GraphViz*/
     
-
-    
-
     public Main() {
         setLayout(null);
-        setSize(720,600);
-
+        setSize(800,800);
 
         readFileButton=new JButton("Read file");
         buildButton=new JButton("Build graph");
@@ -637,7 +677,7 @@ public class Main extends JFrame{
         destText.setText("input the destination word");
 
 
-        ImageLabel.setSize(400, 550);
+        ImageLabel.setSize(480, 750);
         ImageLabel.setLocation(300, 10);
 //		ImageIcon image = new ImageIcon("/Users/DongSky/result.png");
 //		double width=(double)image.getIconWidth();
@@ -716,14 +756,13 @@ public class Main extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
             		if(ranFlag==false) {
-            			ranFlag=true;
             			RandomWalk R1=new RandomWalk("ran1");
             			R1.start();
+            			ranFlag=true;
             		}
             		else {
-            			ranFlag=true;
-            			g.breakWalkingFlag=true;
-            			if(g.breakWalkingFlag==true)System.out.println("work");
+            			ranFlag=false;
+            			g.breakWalking();
             		}
             }
         });
@@ -762,16 +801,7 @@ public class Main extends JFrame{
         if(x1>x2)return x1;
         return x2;
     }
-
-
-
-
     public static void main(String[] args) {
-        //int a = 3;
-        //System.out.println(a);
-//        Graph g=new Graph();
-//        g.fileRead("/home/codergwy/test.txt");
-//        g.addPath();
         new Main();
     }
 }
