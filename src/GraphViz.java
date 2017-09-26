@@ -6,6 +6,9 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 
+/*this is a template of GraphViz*/
+
+
 /**
  * <dl>
  * <dt>Purpose: GraphViz Java API
