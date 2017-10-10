@@ -7,10 +7,13 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 
 /*this is a template of GraphViz*/
+<<<<<<< HEAD
+=======
 
 /*this is the second edit of Lab 3
  * eririririrririririri......*/
 //this is used to be test for something
+>>>>>>> C4
 
 /**
  * <dl>
