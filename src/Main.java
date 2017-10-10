@@ -4,6 +4,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
+<<<<<<< HEAD
 /*this is the first edit in Lab 3*/
 <<<<<<< HEAD
 =======
@@ -11,6 +12,10 @@ import java.util.*;
 /*
  * this is the third edit in Lab 3*/
 >>>>>>> C4
+=======
+
+
+>>>>>>> team/dongsky
 
 public class Main extends JFrame{
 

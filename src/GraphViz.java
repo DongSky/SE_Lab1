@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 
+<<<<<<< HEAD
 /*this is a template of GraphViz*/
 <<<<<<< HEAD
 =======
@@ -15,6 +16,8 @@ import java.io.InputStreamReader;
 //this is used to be test for something
 >>>>>>> C4
 
+=======
+>>>>>>> team/dongsky
 /**
  * <dl>
  * <dt>Purpose: GraphViz Java API
@@ -247,4 +250,8 @@ return img_stream;   }
     this.graph = sb;
    }
    
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> team/dongsky
