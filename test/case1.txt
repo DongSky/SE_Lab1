@@ -1,0 +1,1 @@
+We propose a novel deep neural network architecture for semi-supervised se- mantic segmentation using heterogeneous annotations. Contrary to existing ap- proaches posing semantic segmentation as a single task of region-based classifi- cation, our algorithm decouples classification and segmentation, and learns a sep- arate network for each task. 
