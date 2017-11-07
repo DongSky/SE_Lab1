@@ -608,6 +608,8 @@ public class Main extends JFrame {
       eririStr += "source word not found";
     } else if (result == -2) {
       eririStr += "dest word not found";
+    } else if (result == 2147483647) {
+    	  eririStr += "no direcrted path";
     } else {
       //System.out.println(word1 + "->" + word2 + ":" + result);
       ArrayList<ArrayList<String>> paths = new ArrayList();
