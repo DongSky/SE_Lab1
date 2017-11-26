@@ -44,7 +44,7 @@ public class Main extends JFrame {
 
   public static boolean ranFlag = false;
 
-  public static class Graph {
+  public static class Graph extends BaseGraph{
     /*
      * Edge Class:store edges in the graph paramaters: int weightIndex: the
      * number of the edge boolean walked: a flag to judge in the Random Walk
@@ -145,15 +145,8 @@ public class Main extends JFrame {
     }
 
     ArrayList<Vertex> vertexList;
-    int[] weight;
-    int edgeNum;
-    int[] distance;
-    boolean[] visited;
-    boolean[] walked;
     ArrayList<Edge>[] intestEdge;
     HashMap<String, Vertex> contentMap;
-    public ArrayList<String> sequence;
-
     /** new a graph. */
     public Graph() {
       int maxWeightListSize = 2000000;
@@ -176,40 +169,7 @@ public class Main extends JFrame {
     }
 
     /** read file. */
-    public void fileRead(String filename) {
-      sequence = new ArrayList<String>();
-      File file = new File(filename);
-      try {
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(file));
-        BufferedReader br = new BufferedReader(reader);
-        String line = "";
-        try {
-          line = br.readLine();
-          while (line != null) {
-            String piece = "";
-            for (int i = 0; i < line.length(); i++) {
-              if ((line.charAt(i) >= 'A' && line.charAt(i) <= 'Z')
-                  || (line.charAt(i) >= 'a' && line.charAt(i) <= 'z')) {
-                piece += line.charAt(i);
-              } else {
-                if (!piece.equals("")) {
-                  sequence.add(piece.toLowerCase());
-                }
-                piece = "";
-              }
-            }
-            if (!piece.equals("")) {
-              sequence.add(piece.toLowerCase());
-            }
-            line = br.readLine();
-          }
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      } catch (FileNotFoundException e) {
-        e.printStackTrace();
-      }
-    }
+
 
     /** add path. */
     public void addPath() {
@@ -399,13 +359,7 @@ public class Main extends JFrame {
       return text;
     }
 
-    /** clean walk edge. */
-    public void cleanWalkedEdge() {
-      walked = new boolean[edgeNum];
-      for (int i = 0; i < edgeNum; i++) {
-        walked[i] = false;
-      }
-    }
+    
 
     /** get bridge words by vertex. */
     public ArrayList<Vertex> getBridgeWords(Vertex vertex1, Vertex vertex2) {
@@ -454,9 +408,6 @@ public class Main extends JFrame {
       return answer.toString();
     }
 
-    boolean isLetter(char x) {
-      return ('a' <= x && x <= 'z') || ('A' <= x && x <= 'Z');
-    }
 
     /** generate new text. */
     public String generateNewText(String originalText) {
