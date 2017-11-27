@@ -1,5 +1,5 @@
 # 软件工程实验1
-
+------------
 ## How To Compile and Test
 
 1.安装Graphviz，记录dot.exe(对Windows)/dot(对Linux/macOS/BSD等)的位置，然后修改GraphViz第49行的缓存位置为任意存在的英文路径，修改第50行的dot文件路径为刚才记录的文件位置。
